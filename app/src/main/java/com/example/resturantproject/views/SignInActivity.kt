@@ -1,21 +1,19 @@
 package com.example.resturantproject.views
 
+import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.resturantproject.databinding.ActivitySignInBinding
 import com.example.resturantproject.db.FireStoreDatabase
+import com.example.resturantproject.helpers.Helpers
 import com.example.resturantproject.helpers.Prefs
-import com.example.resturantproject.model.User
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import java.util.Date
+import com.google.rpc.Help
 
 class SignInActivity : AppCompatActivity() {
-
-    val ADMIN_USER_ID = "cMPdQwTWU3RblGuJDS76vbEneni1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,42 +21,47 @@ class SignInActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val prefs = Prefs(this)
+        val db = FireStoreDatabase()
         FirebaseApp.initializeApp(this)
         val auth = FirebaseAuth.getInstance()
 
-        val db = FireStoreDatabase()
-
-        if (prefs.emailPref != null) {
-            val user = db.getUserByEmail(prefs.emailPref!!)
-            Log.d("ASDFASDFASDF", user.toString())
-            if (user != null) {
-                startActivityForUser(user.id == ADMIN_USER_ID)
-            }
-        }
-
         binding.toSignUp.setOnClickListener {
-            val user = db.getUserById(ADMIN_USER_ID)
-            if (user == null) {
+            Helpers.showLoading(this)
+
+            db.getUserById(Helpers.ADMIN_USER_ID, { user ->
+                Helpers.hideLoading()
+                if (user == null) {
+                    Toast.makeText(
+                        this, "Network Error!", Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    startActivity(Intent(this, SignUpActivity::class.java))
+                }
+            }, {
+                Helpers.hideLoading()
                 Toast.makeText(
                     this, "Network Error!", Toast.LENGTH_SHORT
                 ).show()
-            } else {
-                startActivity(Intent(this, SignUpActivity::class.java))
-            }
+            })
         }
 
         binding.btnSignIn.setOnClickListener {
+            Helpers.showLoading(this)
+
             val email = binding.txtEmailSignin.text.toString()
             val password = binding.txtPasswordSignin.text.toString()
 
             if (email.isEmpty() || password.isEmpty()) {
+                Helpers.hideLoading()
                 Toast.makeText(this, "Please Fill The Fields", Toast.LENGTH_SHORT).show()
             } else {
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                    Helpers.hideLoading()
                     if (task.isSuccessful) {
                         prefs.emailPref = email
 
-                        startActivityForUser(task.result.user?.uid == ADMIN_USER_ID)
+                        startActivity(Intent(this, Helpers.getUserActivity(task.result.user?.uid == Helpers.ADMIN_USER_ID)))
+                        finish()
                     } else {
                         if (task.exception.toString().contains("FirebaseNetworkException")) {
                             Toast.makeText(
@@ -76,13 +79,5 @@ class SignInActivity : AppCompatActivity() {
         }
     }
 
-    private fun startActivityForUser(isAdmin: Boolean = false) {
-        // TODO: change activities
-        if (isAdmin) {
-            startActivity(Intent(this, MainActivity::class.java))
-        } else {
-            startActivity(Intent(this, MealsActivity::class.java))
-        }
-        finish()
-    }
+
 }

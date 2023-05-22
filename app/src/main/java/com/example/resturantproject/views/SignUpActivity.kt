@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.Toast
@@ -34,6 +35,7 @@ class SignUpActivity : AppCompatActivity() {
     private var imageUri: Uri? = null
     private var imageId: String? = null
     private val GALLERY_REQUEST_CODE = 100
+    private val DATE_FORMAT = "dd/MM/yyyy"
     private lateinit var storage: FirebaseStorage
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,19 +72,25 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         binding.btnSignup.setOnClickListener {
+            // Start loading
             val fullName = binding.txtFullnameSignup.text.toString()
             val email = binding.txtEmailSignup.text.toString()
-            val birthdate = txtBirthDate.text.toString()
+            val birthdate = binding.txtBirthdateSignup.text.toString()
             val password = binding.txtPasswordSignup.text.toString()
-            val confirmPassword = binding.txtConfirmPasswordSignup.text.toString()
+            val location = binding.txtLocationSignup.text.toString()
 
             var isValid = true
 
+            if (fullName.isEmpty()) {
+                binding.txtFullnameSignup.error = "Full name is required!"
+                isValid = false
+            } else if (fullName.split("\\s+".toRegex()).size < 2) {
+                binding.txtFullnameSignup.error = "Full name must consist of at least two words!"
+                isValid = false
+            }
+
             if (email.isEmpty()) {
                 binding.txtEmailSignup.error = "Email is required!"
-                isValid = false
-            } else if (db.userExists(email)) {
-                binding.txtEmailSignup.error = "Email is already used! Try another"
                 isValid = false
             }
 
@@ -94,11 +102,12 @@ class SignUpActivity : AppCompatActivity() {
                 isValid = false
             }
 
-            if (confirmPassword.isEmpty()) {
-                binding.txtConfirmPasswordSignup.error = "Please confirm your password!"
+            if (birthdate.isEmpty()) {
+                binding.txtBirthdateSignup.error = "Birthdate is required!"
                 isValid = false
-            } else if (confirmPassword != password) {
-                binding.txtConfirmPasswordSignup.error = "Passwords doesn't match"
+            } else if (!birthdate.matches("[0-9]{2}/[0-9]{2}/[0-9]{4}".toRegex())) {
+                binding.txtBirthdateSignup.error =
+                    "Birthdate must match this format: ${DATE_FORMAT}"
                 isValid = false
             }
 
@@ -108,24 +117,49 @@ class SignUpActivity : AppCompatActivity() {
             }
 
             if (isValid) {
-//                if (db.insertUser(
-//                        User(
-//                            email,
-//                            password,
-//                            fullName,
-//                            birthdate,
-//                            Helpers.getPath(contentResolver, imageUri)
-//                        )
-//                    )
-//                ) {
-//                    prefs.emailPref = db.getUserByEmail(email).username
-//
-//                    finish()
-//                } else {
-//                    Toast.makeText(
-//                        this, "Something went wrong! Please try again", Toast.LENGTH_SHORT
-//                    ).show()
-//                }
+                Helpers.showLoading(this)
+                db.emailExists(email, { exsists ->
+                    if (exsists) {
+                        Helpers.hideLoading()
+                        binding.txtEmailSignup.error = "Email is already used! Try another"
+
+                        Toast.makeText(
+                            this, "Email is already used! Try another", Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        db.insertUser(
+                            User(
+                                "",
+                                email,
+                                password,
+                                fullName,
+                                Date(birthdate),
+                                imageId
+                            ),
+                            {
+                                Log.d("Signup.ClickListener", "User inserted successfully!")
+                                Helpers.hideLoading()
+                                prefs.emailPref = email
+                                finish()
+                            },
+                            { e ->
+                                Log.d("Signup.ClickListener", "Failed to insert user!\n${e}")
+                                Helpers.hideLoading()
+                                Toast.makeText(
+                                    this,
+                                    "Something went wrong! Please try again",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        )
+                    }
+                }, { e ->
+                    Log.d("db.emailExists", "Failed!\n${e}")
+                    Helpers.hideLoading()
+                    Toast.makeText(
+                        this, "Something went wrong! Please try again", Toast.LENGTH_SHORT
+                    ).show()
+                })
             }
         }
     }
@@ -143,6 +177,7 @@ class SignUpActivity : AppCompatActivity() {
             binding.imageSignup.setImageURI(data.data)
 
 
+            // TODO: NOT IMPORTANT only upload when sign up
             val storageRef = storage.reference
             val imagesRef = storageRef.child("user_images")
             // Upload to firebase
@@ -151,14 +186,18 @@ class SignUpActivity : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val data = baos.toByteArray()
 
-            imageId= System.currentTimeMillis().toString()
+            imageId = System.currentTimeMillis().toString()
             val mountainsRef = imagesRef.child("${imageId}.jpg")
             val uploadTask = mountainsRef.putBytes(data)
+            Helpers.showLoading(this)
+
             uploadTask.addOnFailureListener {
+                Helpers.hideLoading()
                 Toast.makeText(
                     this, "Upload Error! Couldn't update profile image", Toast.LENGTH_SHORT
                 ).show()
             }.addOnSuccessListener { taskSnapshot ->
+                Helpers.hideLoading()
                 Toast.makeText(
                     this, "Image upload successfully!", Toast.LENGTH_SHORT
                 ).show()
@@ -196,7 +235,7 @@ class SignUpActivity : AppCompatActivity() {
                 selectedDate.set(selectedYear, selectedMonth, selectedDay)
 
                 // Format the selected date as desired
-                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val dateFormat = SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
                 val formattedDate = dateFormat.format(selectedDate.time)
 
                 // Update the UI or perform other actions with the formatted date

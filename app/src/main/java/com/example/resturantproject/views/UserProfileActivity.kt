@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.resturantproject.R
 import com.example.resturantproject.databinding.ActivityUserProfileBinding
@@ -29,13 +28,23 @@ class UserProfileActivity : AppCompatActivity() {
         val db = FireStoreDatabase()
         val prefs = Prefs(this)
 
-        user = db.getUserByEmail(prefs.emailPref!!)!!
+        Helpers.showLoading(this)
+        db.getUserByEmail(prefs.emailPref!!, { user ->
+            Helpers.hideLoading()
 
-        image = user.img
+            image = user?.img
+            if (image != null)
+                binding.imgProfile.setImageURI(Uri.parse(image))
+            binding.tvUsernameProfile.text = "@${user?.email}"
 
-        if (image != null)
-            binding.imgProfile.setImageURI(Uri.parse(image))
-        binding.tvUsernameProfile.text = "@${user.email}"
+            // TODO: fill the data UI with this user
+        }, { e ->
+            Helpers.hideLoading()
+
+        })
+
+
+
         binding.tvFullnameProfile.text = user.fullname ?: "No name"
 //        binding.tvPhoneProfile.text = user.birthdate ?: "+xxx - xxx - xxx - xxxx"
 

@@ -32,7 +32,7 @@ class MealDetailsActivity : AppCompatActivity() {
 
         val db = FireStoreDatabase()
         val prefs = Prefs(this)
-        user = db.getUserByEmail(prefs.emailPref!!)!!
+//        user = db.getUserByEmail(prefs.emailPref!!)!!
 
         val mealId = intent.getLongExtra("mealId", -1)
 //        meal = db.getMealById(mealId)

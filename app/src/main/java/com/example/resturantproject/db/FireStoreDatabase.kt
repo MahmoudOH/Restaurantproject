@@ -3,6 +3,9 @@ package com.example.resturantproject.db
 import android.util.Log
 import com.example.resturantproject.model.Meal
 import com.example.resturantproject.model.User
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 
@@ -12,23 +15,32 @@ class FireStoreDatabase {
     val RESTAURANTS_COLLECTION_NAME = "restaurants"
 
     private val db = FirebaseFirestore.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val usersCollection = db.collection(USERS_COLLECTION_NAME)
     private val mealsCollection = db.collection(MEALS_COLLECTION_NAME)
     private val restaurantsCollection = db.collection(RESTAURANTS_COLLECTION_NAME)
 
+    private fun insertAuthUser(email: String, password: String): Task<AuthResult> {
+        return auth.createUserWithEmailAndPassword(email, password)
+    }
 
-    fun insertUser(user: User): Boolean {
-        var inserted = false
-
-        usersCollection
-            .add(user)
+    fun insertUser(user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        insertAuthUser(user.email, user.password)
             .addOnSuccessListener {
-                inserted = true
-                Log.d("DB.insertUser", "User inserted successfully!")
-            }.addOnFailureListener {
-                Log.d("DB.insertUser", "Failed to insert user!")
+                Log.d("DB.insertUser", "User inserted successfully to Auth!\n${it}")
+                usersCollection.add(user)
+                    .addOnSuccessListener {
+                        Log.d("DB.insertUser", "User inserted successfully to Firestore!\n${it}")
+                        onSuccess.invoke()
+                    }
+                    .addOnFailureListener {
+                        Log.d("DB.insertUser", "Failed to insert new user to Firestore!\n${it}")
+                        onFailure.invoke(it)
+                    }
             }
-        return inserted
+            .addOnFailureListener { e ->
+                Log.d("DB.insertUser", "Failed to insert new user to Auth!\n${e}")
+            }
     }
 
 //    fun updateUser(username: String, user: User): Boolean {
@@ -41,33 +53,38 @@ class FireStoreDatabase {
 //        return db.update(User.TABLE_NAME, cv, "${User.COL_USERNAME} = '$username'", null) > 0
 //    }
 
-    fun userExists(email: String): Boolean {
-        val user = getUserByEmail(email, { user: User? ->
-            
+    fun emailExists(email: String, onSuccess: (Boolean) -> Unit, onFailure: (Exception) -> Unit) {
+        return getUserByEmail(email, { user ->
+            Log.d("DB.emailExists", "email found in Firestore!\n${user}")
+            onSuccess.invoke(user != null)
+        }, { e ->
+            Log.d("DB.getUserByEmail", "User Found in Firestore!\n${e}")
+            onFailure.invoke(e)
         })
-        return user != null
     }
 
-    fun getUserByEmail(email: String, callback: (User?) -> Unit) {
+    fun getUserByEmail(email: String, onSuccess: (User?) -> Unit, onFailure: (Exception) -> Unit) {
         usersCollection.whereEqualTo("email", email).get().addOnSuccessListener { querySnapshot ->
+            Log.d("DB.getUserByEmail", "User Found in Firestore!")
+
             for (document in querySnapshot) {
-                Log.d("ASDFASDFASDF", document.toString())
-                callback(document.toObject())
+                onSuccess.invoke(document.toObject())
             }
+            onSuccess.invoke(null)
         }.addOnFailureListener { e ->
-            callback(null)
+            Log.d("DB.getUserByEmail", "Failed to get user from Firestore!\n${e}")
+            onFailure.invoke(e)
         }
     }
 
-    fun getUserById(userId: String): User? {
-        var user: User? = null
-
+    fun getUserById(userId: String, onSuccess: (User?) -> Unit, onFailure: (Exception) -> Unit) {
         usersCollection.document(userId).get().addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                user = document.toObject<User>()
-            }
+            Log.d("DB.getUserById", "User Found in Firestore!")
+            onSuccess.invoke(document.toObject())
+        }.addOnFailureListener { e ->
+            Log.d("DB.getUserById", "Failed to get user from Firestore!\n${e}")
+            onFailure.invoke(e)
         }
-        return user
     }
 
 //    fun insertMeal(meal: Meal): Long {

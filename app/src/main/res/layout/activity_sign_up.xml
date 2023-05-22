@@ -47,19 +47,6 @@
         app:layout_constraintTop_toBottomOf="@+id/txt_email_signup" />
 
     <EditText
-        android:id="@+id/txt_confirmPassword_signup"
-        android:layout_width="300dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="8dp"
-        android:hint="Confirm Password"
-        android:inputType="textPassword"
-        android:padding="10dp"
-        app:layout_constraintEnd_toEndOf="@+id/txt_password_signup"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/txt_password_signup"
-        app:layout_constraintTop_toBottomOf="@+id/txt_password_signup" />
-
-    <EditText
         android:id="@+id/txt_password_signup"
         android:layout_width="300dp"
         android:layout_height="50dp"
@@ -71,6 +58,19 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/txt_birthdate_signup"
         app:layout_constraintTop_toBottomOf="@+id/txt_birthdate_signup" />
+
+    <EditText
+        android:id="@+id/txt_location_signup"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:hint="Enter your location"
+        android:inputType="textPassword"
+        android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="@+id/txt_password_signup"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/txt_password_signup"
+        app:layout_constraintTop_toBottomOf="@+id/txt_password_signup" />
 
     <Button
         android:id="@+id/btn_signup"
