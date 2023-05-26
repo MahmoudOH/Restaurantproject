@@ -8,6 +8,7 @@ import com.example.resturantproject.databinding.ActivitySplashBinding
 import com.example.resturantproject.db.FireStoreDatabase
 import com.example.resturantproject.helpers.Helpers
 import com.example.resturantproject.helpers.Prefs
+import com.google.firebase.FirebaseApp
 
 class SplashActivity : AppCompatActivity() {
 
@@ -18,6 +19,7 @@ class SplashActivity : AppCompatActivity() {
         val binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        FirebaseApp.initializeApp(this)
         var hasNotStartedActivity = true
 
         val prefs = Prefs(this)

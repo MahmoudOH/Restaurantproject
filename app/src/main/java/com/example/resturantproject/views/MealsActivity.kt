@@ -33,6 +33,7 @@ class MealsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val db = FireStoreDatabase()
+
         adapter = MealAdapter(this, db.getAllMeals())
 
         binding.rvMeals.layoutManager = LinearLayoutManager(this)

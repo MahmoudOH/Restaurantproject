@@ -59,18 +59,35 @@
         app:layout_constraintStart_toStartOf="@+id/txt_birthdate_signup"
         app:layout_constraintTop_toBottomOf="@+id/txt_birthdate_signup" />
 
-    <EditText
-        android:id="@+id/txt_location_signup"
-        android:layout_width="300dp"
-        android:layout_height="50dp"
+
+    <LinearLayout
+        android:id="@+id/txt_location_parent_edit_profile"
         android:layout_marginTop="8dp"
-        android:hint="Enter your location"
-        android:inputType="textPassword"
-        android:padding="10dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="@+id/txt_password_signup"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/txt_password_signup"
-        app:layout_constraintTop_toBottomOf="@+id/txt_password_signup" />
+        app:layout_constraintTop_toBottomOf="@+id/txt_password_signup"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/txt_location_signup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter your location"
+            android:inputType="text"
+            android:padding="10dp"
+            />
+
+        <ProgressBar
+            android:id="@+id/pB_signup"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_signup"
@@ -93,7 +110,7 @@
         android:contentDescription="User profile image"
         android:focusable="true"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher_foreground"
+        android:src="@drawable/user"
         app:civ_border_color="#A2A4A6"
         app:civ_border_overlay="true"
         app:civ_border_width="1dp"

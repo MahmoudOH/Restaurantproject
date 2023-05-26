@@ -27,14 +27,15 @@ class FireStoreDatabase {
     fun insertUser(user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         insertAuthUser(user.email, user.password)
             .addOnSuccessListener {
-                Log.d("DB.insertUser", "User inserted successfully to Auth!\n${it}")
+                user.id = it.user?.uid.toString()
+                Log.d("DB.insertUser", "User inserted successfully to Auth! $it")
                 usersCollection.add(user)
                     .addOnSuccessListener {
-                        Log.d("DB.insertUser", "User inserted successfully to Firestore!\n${it}")
+                        Log.d("DB.insertUser", "User inserted successfully to Firestore! $it")
                         onSuccess.invoke()
                     }
                     .addOnFailureListener {
-                        Log.d("DB.insertUser", "Failed to insert new user to Firestore!\n${it}")
+                        Log.d("DB.insertUser", "Failed to insert new user to Firestore! $it")
                         onFailure.invoke(it)
                     }
             }
@@ -43,34 +44,58 @@ class FireStoreDatabase {
             }
     }
 
-//    fun updateUser(username: String, user: User): Boolean {
-//        val cv = ContentValues()
-//        cv.put(User.COL_USERNAME, user.username)
-//        cv.put(User.COL_PASSWORD, user.password)
-//        cv.put(User.COL_FULLNAME, user.fullname)
-//        cv.put(User.COL_PHONE_NUMBER, user.phoneNumber)
-//        cv.put(User.COL_IMG, user.img)
-//        return db.update(User.TABLE_NAME, cv, "${User.COL_USERNAME} = '$username'", null) > 0
-//    }
+    fun insertMeal(meal: Meal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    }
+
+    fun updateUser(user: User, onSuccess: () -> Unit, onFailure: (Exception?) -> Unit) {
+        val authUser = auth.currentUser
+
+        // Update email first
+        authUser!!.updateEmail(user.email)
+            .addOnCompleteListener { emailUpdateTask ->
+                if (emailUpdateTask.isSuccessful) {
+                    if (user.password.isNotBlank()) {
+                        // Update password
+                        authUser.updatePassword(user.password)
+
+                        usersCollection.document(user.id).set(user)
+                            .addOnSuccessListener {
+                                Log.d("DB.updateUser", "User inserted successfully to Firestore! $it")
+                                onSuccess.invoke()
+                            }
+                            .addOnFailureListener {
+                                Log.d("DB.updateUser", "Failed to insert new user to Firestore! $it")
+                                onFailure.invoke(it)
+                            }
+                    }
+                } else {
+                    onFailure.invoke(null)
+                }
+            }.addOnFailureListener {
+                Log.d("DB.updateUser", "Failed to insert new user to Firestore! $it")
+                onFailure.invoke(it)
+            }
+    }
 
     fun emailExists(email: String, onSuccess: (Boolean) -> Unit, onFailure: (Exception) -> Unit) {
-        return getUserByEmail(email, { user ->
-            Log.d("DB.emailExists", "email found in Firestore!\n${user}")
-            onSuccess.invoke(user != null)
-        }, { e ->
-            Log.d("DB.getUserByEmail", "User Found in Firestore!\n${e}")
-            onFailure.invoke(e)
+        return getUserByEmail(email, {
+            Log.d("DB.emailExists", "email: $email found in Firestore! $it}")
+            onSuccess.invoke(it != null)
+        }, {
+            Log.d("DB.getUserByEmail", "User Found in Firestore! $it")
+            onFailure.invoke(it)
         })
     }
 
     fun getUserByEmail(email: String, onSuccess: (User?) -> Unit, onFailure: (Exception) -> Unit) {
         usersCollection.whereEqualTo("email", email).get().addOnSuccessListener { querySnapshot ->
-            Log.d("DB.getUserByEmail", "User Found in Firestore!")
+            var user: User? = null
 
             for (document in querySnapshot) {
-                onSuccess.invoke(document.toObject())
+                user = document.toObject()
             }
-            onSuccess.invoke(null)
+            Log.d("DB.getUserByEmail", "User Found in Firestore!$user")
+            onSuccess.invoke(user)
         }.addOnFailureListener { e ->
             Log.d("DB.getUserByEmail", "Failed to get user from Firestore!\n${e}")
             onFailure.invoke(e)
