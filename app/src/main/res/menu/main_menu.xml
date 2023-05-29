@@ -3,34 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_search"
-        android:icon="@drawable/ic_search"
-        android:title="Search"
-        app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView" />
+        android:id="@+id/memu_add_restaurant"
+        android:icon="@drawable/ic_add"
+        android:title="Add restaurant"
+        app:showAsAction="never" />
 
     <item
-        android:id="@+id/add"
+        android:id="@+id/memu_add_meal"
         android:icon="@drawable/ic_add"
         android:title="Add meal"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/favourite"
-        android:icon="@drawable/ic_star"
-        android:title="Favourite"
-        app:showAsAction="never" />
 
     <item
         android:id="@+id/profile"
         android:icon="@drawable/ic_account"
         android:title="Profile"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/logout"
         android:icon="@drawable/ic_logout"
         android:title="Logout"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
 
 </menu>

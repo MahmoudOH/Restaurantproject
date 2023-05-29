@@ -6,7 +6,6 @@ import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import com.example.resturantproject.databinding.ActivitySplashBinding
 import com.example.resturantproject.db.FireStoreDatabase
-import com.example.resturantproject.helpers.Helpers
 import com.example.resturantproject.helpers.Prefs
 import com.google.firebase.FirebaseApp
 
@@ -16,14 +15,15 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(applicationContext)
+
         val binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        FirebaseApp.initializeApp(this)
         var hasNotStartedActivity = true
 
         val prefs = Prefs(this)
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(applicationContext)
         if (prefs.emailPref != null) {
             db.getUserByEmail(prefs.emailPref!!, { user ->
                 if (user != null) {
@@ -31,7 +31,7 @@ class SplashActivity : AppCompatActivity() {
                     startActivity(
                         Intent(
                             this,
-                            Helpers.getUserActivity(user.id == Helpers.ADMIN_USER_ID)
+                            MainActivity::class.java
                         )
                     )
                     finish()

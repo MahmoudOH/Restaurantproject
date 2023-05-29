@@ -30,7 +30,7 @@ class MealDetailsActivity : AppCompatActivity() {
         binding = ActivityMealDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(applicationContext)
         val prefs = Prefs(this)
 //        user = db.getUserByEmail(prefs.emailPref!!)!!
 
@@ -74,18 +74,14 @@ class MealDetailsActivity : AppCompatActivity() {
 
         binding.btnEditMeal.setOnClickListener {
             val name = dialogBinding.txtNameDialog
-            val ingredients = dialogBinding.txtIngredientsDialog
-            val origin = dialogBinding.txtOriginDialog
+            val ingredients = dialogBinding.txtDetailsDialog
             val price = dialogBinding.txtPriceDialog
             val rating = dialogBinding.rbMealDialog
-            val category = dialogBinding.txtCategoryDialog
 
             dialogBinding.txtNameDialog.setText(meal?.name)
-            dialogBinding.txtIngredientsDialog.setText(meal?.details)
-//            dialogBinding.txtOriginDialog.setText(meal?.origin)
+            dialogBinding.txtDetailsDialog.setText(meal?.details)
             dialogBinding.txtPriceDialog.setText(meal?.price.toString())
             dialogBinding.rbMealDialog.rating = meal?.rate!!
-//            dialogBinding.txtCategoryDialog.setText(meal?.category)
             if (meal?.image != null)
                 dialogBinding.imgMealDialog.setImageURI(Uri.parse(meal?.image))
 
@@ -94,10 +90,8 @@ class MealDetailsActivity : AppCompatActivity() {
             dialog.setOnDismissListener {
                 name.text.clear()
                 ingredients.text.clear()
-                origin.text.clear()
                 price.text.clear()
                 rating.rating = 0f
-                category.text.clear()
                 dialogBinding.imgMealDialog.setImageResource(R.drawable.ic_launcher_foreground)
             }
 
@@ -113,22 +107,12 @@ class MealDetailsActivity : AppCompatActivity() {
                     isValid = false
                 }
 
-                if (origin.text.toString().isEmpty()) {
-                    origin.error = "Origin is required!"
-                    isValid = false
-                }
-
                 if (rating.rating <= 0) {
                     Toast.makeText(
                         this,
                         "Rating is required!",
                         Toast.LENGTH_LONG
                     ).show()
-                    isValid = false
-                }
-
-                if (category.text.toString().isEmpty()) {
-                    category.error = "Category is required!"
                     isValid = false
                 }
 

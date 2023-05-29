@@ -1,18 +1,31 @@
 package com.example.resturantproject.db
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import com.example.resturantproject.model.Meal
+import com.example.resturantproject.model.Restaurant
 import com.example.resturantproject.model.User
 import com.google.android.gms.tasks.Task
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.UploadTask
+import java.io.ByteArrayOutputStream
 
-class FireStoreDatabase {
+class FireStoreDatabase(appContext: Context) {
     val USERS_COLLECTION_NAME = "users"
     val MEALS_COLLECTION_NAME = "meals"
     val RESTAURANTS_COLLECTION_NAME = "restaurants"
+
+    init {
+        FirebaseApp.initializeApp(appContext)
+    }
 
     private val db = FirebaseFirestore.getInstance()
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -22,6 +35,11 @@ class FireStoreDatabase {
 
     private fun insertAuthUser(email: String, password: String): Task<AuthResult> {
         return auth.createUserWithEmailAndPassword(email, password)
+    }
+
+    fun getCurrentUserID(): String? {
+        val currentUser = auth.currentUser
+        return currentUser?.uid
     }
 
     fun insertUser(user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
@@ -44,8 +62,6 @@ class FireStoreDatabase {
             }
     }
 
-    fun insertMeal(meal: Meal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-    }
 
     fun updateUser(user: User, onSuccess: () -> Unit, onFailure: (Exception?) -> Unit) {
         val authUser = auth.currentUser
@@ -60,11 +76,17 @@ class FireStoreDatabase {
 
                         usersCollection.document(user.id).set(user)
                             .addOnSuccessListener {
-                                Log.d("DB.updateUser", "User inserted successfully to Firestore! $it")
+                                Log.d(
+                                    "DB.updateUser",
+                                    "User inserted successfully to Firestore! $it"
+                                )
                                 onSuccess.invoke()
                             }
                             .addOnFailureListener {
-                                Log.d("DB.updateUser", "Failed to insert new user to Firestore! $it")
+                                Log.d(
+                                    "DB.updateUser",
+                                    "Failed to insert new user to Firestore! $it"
+                                )
                                 onFailure.invoke(it)
                             }
                     }
@@ -112,28 +134,76 @@ class FireStoreDatabase {
         }
     }
 
-//    fun insertMeal(meal: Meal): Long {
-//        val cv = ContentValues()
-//        cv.put(Meal.COL_NAME, meal.name)
-//        cv.put(Meal.COL_IMG, meal.image)
-//        cv.put(Meal.COL_INGREDIENTS, meal.ingredients)
-//        cv.put(Meal.COL_ORIGIN, meal.origin)
-//        cv.put(Meal.COL_PRICE, meal.price)
-//        cv.put(Meal.COL_RATE, meal.rate)
-//        cv.put(Meal.COL_CATEGORY, meal.category)
-//        return db.insert(Meal.TABLE_NAME, null, cv)
-//    }
-//
-//
+    fun getCurrentUser(onSuccess: (User) -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserID()
+        if (userId == null) {
+            Log.d("DB.getCurrentUser", "Failed to get user from FireAuth! userId=$userId")
+            onFailure.invoke(Exception("Failed to get user from FireAuth! userId=$userId"))
+        } else {
+            usersCollection.document(userId).get().addOnSuccessListener { document ->
+                Log.d("DB.getCurrentUser", "User Found in Firestore!")
+                val user = document.toObject<User>()
+                if (user != null) {
+                    onSuccess.invoke(user)
+                } else {
+                    onFailure.invoke(Exception("Failed to get user from FireAuth! user=$user"))
+                }
+            }.addOnFailureListener { e ->
+                Log.d("DB.getCurrentUser", "Failed to get user from Firestore!\n${e}")
+                onFailure.invoke(e)
+            }
+        }
+    }
+
+
 //    fun deleteMeal(meal: Meal): Boolean {
 //        return db.delete(Meal.TABLE_NAME, "${Meal.COL_ID} = '${meal.id}'", null) > 0
 //    }
 
-    fun getAllMeals(): ArrayList<Meal> {
-        val data = ArrayList<Meal>()
+    fun insertMeal(meal: Meal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        mealsCollection.add(meal)
+            .addOnSuccessListener {
+                Log.d("DB.insertMeal", "Meal inserted successfully to Firestore! $it")
+                onSuccess.invoke()
+            }
+            .addOnFailureListener {
+                Log.d("DB.insertMeal", "Failed to insert new meal to Firestore! $it")
+                onFailure.invoke(it)
+            }
+    }
 
+    fun updateMeal(meal: Meal, onSuccess: () -> Unit, onFailure: (Exception?) -> Unit) {
+        mealsCollection.document(meal.id).set(meal)
+            .addOnSuccessListener {
+                Log.d(
+                    "DB.updateUser",
+                    "User inserted successfully to Firestore! $it"
+                )
+                onSuccess.invoke()
+            }
+            .addOnFailureListener {
+                Log.d(
+                    "DB.updateUser",
+                    "Failed to insert new user to Firestore! $it"
+                )
+                onFailure.invoke(it)
+            }
 
-        return data
+    }
+
+    fun getAllMeals(): Task<QuerySnapshot> {
+        return mealsCollection.get()
+    }
+
+    fun getRestaurantMeals(restaurant: Restaurant): Task<QuerySnapshot> {
+        return mealsCollection.whereEqualTo(
+            "restaurant",
+            db.document("$RESTAURANTS_COLLECTION_NAME/${restaurant.id}")
+        ).get()
+    }
+
+    fun getAllRestaurants(): Task<QuerySnapshot> {
+        return restaurantsCollection.get()
     }
 
 //    fun addToFavourite(username: String, mealId: Long): Boolean {
@@ -156,6 +226,17 @@ class FireStoreDatabase {
 
         return data
     }
+
+    fun uploadImage(drawable: BitmapDrawable, imagesRef: StorageReference): UploadTask {
+        // Upload to firebase storage
+        val bitmap = drawable.bitmap
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val data = baos.toByteArray()
+        val mountainsRef = imagesRef.child("${System.currentTimeMillis()}.jpg")
+        return mountainsRef.putBytes(data)
+    }
+
 
 //    fun getMealById(mealId: Long): Meal {
 //        val c =

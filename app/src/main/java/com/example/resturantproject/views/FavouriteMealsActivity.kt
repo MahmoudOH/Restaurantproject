@@ -17,7 +17,7 @@ class FavouriteMealsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val adapter: MealAdapter
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(applicationContext)
         val prefs = Prefs(this)
 
         adapter = MealAdapter(this, db.getAllFavouriteMeals(prefs.emailPref!!))

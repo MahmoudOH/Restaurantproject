@@ -14,6 +14,7 @@ import com.example.resturantproject.model.User
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.squareup.picasso.Picasso
@@ -23,6 +24,7 @@ class UserProfileFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var binding: FragmentUserProfileBinding
     private lateinit var user: User
+    private lateinit var mMap: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +45,9 @@ class UserProfileFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val mapFragment = childFragmentManager
+            .findFragmentById(R.id.user_map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
 
         if (user.img?.isNotBlank() == true)
             Picasso.get().load(Uri.parse(user.img)).into(binding.imgProfile)
@@ -50,9 +55,6 @@ class UserProfileFragment : Fragment(), OnMapReadyCallback {
         binding.tvEmailProfile.text = user.email
         binding.tvFullnameProfile.text = user.fullname
         binding.tvBirthdateProfile.text = Helpers.getFormattedDate(user.birthdate)
-
-        binding.userMap.onCreate(savedInstanceState)
-        binding.userMap.getMapAsync(this)
 
         binding.btnEditProfile.setOnClickListener {
             val editProfileFragment = EditProfileFragment()
@@ -69,13 +71,16 @@ class UserProfileFragment : Fragment(), OnMapReadyCallback {
 
     }
 
-    override fun onMapReady(map: GoogleMap) {
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+
         val location = LatLng(user.location?.latitude ?: 0.0, user.location?.longitude ?: 0.0)
-        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
-        map.uiSettings.isZoomControlsEnabled = true
-        map.uiSettings.isMyLocationButtonEnabled = true
-        map.addMarker(MarkerOptions().position(location))
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 12f))
+        mMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        mMap.uiSettings.isZoomControlsEnabled = true
+        mMap.uiSettings.isMyLocationButtonEnabled = true
+        mMap.addMarker(MarkerOptions().position(location).title("${user.fullname} location"))
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 12f))
     }
 
 }

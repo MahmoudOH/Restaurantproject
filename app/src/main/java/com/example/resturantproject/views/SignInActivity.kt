@@ -1,6 +1,5 @@
 package com.example.resturantproject.views
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -11,7 +10,6 @@ import com.example.resturantproject.helpers.Helpers
 import com.example.resturantproject.helpers.Prefs
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.rpc.Help
 
 class SignInActivity : AppCompatActivity() {
 
@@ -21,7 +19,7 @@ class SignInActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val prefs = Prefs(this)
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(applicationContext)
         FirebaseApp.initializeApp(this)
         val auth = FirebaseAuth.getInstance()
 
@@ -60,7 +58,7 @@ class SignInActivity : AppCompatActivity() {
                     if (task.isSuccessful) {
                         prefs.emailPref = email
 
-                        startActivity(Intent(this, Helpers.getUserActivity(task.result.user?.uid == Helpers.ADMIN_USER_ID)))
+                        startActivity(Intent(this, MainActivity::class.java))
                         finish()
                     } else {
                         if (task.exception.toString().contains("FirebaseNetworkException")) {

@@ -50,7 +50,7 @@ class SignUpActivity : AppCompatActivity() {
         val storageRef = Firebase.storage.reference
         val imagesRef = storageRef.child("user_images")
 
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(applicationContext)
         val prefs = Prefs(this)
 
         txtBirthDate = binding.txtBirthdateSignup
@@ -141,13 +141,7 @@ class SignUpActivity : AppCompatActivity() {
             if (isValid) {
                 Helpers.showLoading(this)
 
-                // Upload to firebase
-                val bitmap = (binding.imageSignup.drawable as BitmapDrawable).bitmap
-                val baos = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-                val data = baos.toByteArray()
-                val mountainsRef = imagesRef.child("${System.currentTimeMillis()}.jpg")
-                val uploadTask = mountainsRef.putBytes(data)
+                val uploadTask = db.uploadImage(binding.imageSignup.drawable as BitmapDrawable, imagesRef)
 
                 Helpers.showLoading(this)
                 db.emailExists(email, { exists ->

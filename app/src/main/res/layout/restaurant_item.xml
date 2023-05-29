@@ -18,7 +18,7 @@
 
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/iv_meal"
+            android:id="@+id/iv_restaurant"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_marginStart="8dp"
@@ -39,18 +39,19 @@
             tools:srcCompat="@drawable/ic_launcher_foreground" />
 
         <TextView
-            android:id="@+id/tv_name"
+            android:id="@+id/tv_name_restaurant"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/iv_meal"
-            app:layout_constraintTop_toTopOf="@+id/iv_meal"
-            tools:text="Meal name" />
+            app:layout_constraintStart_toEndOf="@+id/iv_restaurant"
+            app:layout_constraintTop_toTopOf="@+id/iv_restaurant"
+            tools:text="Restaurant name" />
 
         <TextView
-            android:id="@+id/tv_details_meal"
+            android:id="@+id/tv_about_restaurant"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -60,7 +61,7 @@
             app:layout_constraintStart_toStartOf="@+id/rating"
             app:layout_constraintTop_toBottomOf="@+id/rating"
             app:layout_constraintVertical_bias="0.0"
-            tools:text="details" />
+            tools:text="about" />
 
         <RatingBar
             android:id="@+id/rating"
@@ -68,32 +69,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="@+id/tv_name"
-            app:layout_constraintTop_toBottomOf="@+id/tv_meal_restaurant" />
-
-        <TextView
-            android:id="@+id/tv_pricre_meal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="#4CAF50"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/rating"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.8"
-            app:layout_constraintStart_toEndOf="@+id/rating"
-            app:layout_constraintTop_toBottomOf="@+id/tv_name"
-            tools:text="23.5$" />
-
-        <TextView
-            android:id="@+id/tv_meal_restaurant"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="@+id/tv_name"
-            app:layout_constraintTop_toBottomOf="@+id/tv_name"
-            tools:text="Restuarant name" />
+            app:layout_constraintStart_toStartOf="@+id/tv_name_restaurant"
+            app:layout_constraintTop_toBottomOf="@+id/tv_name_restaurant" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

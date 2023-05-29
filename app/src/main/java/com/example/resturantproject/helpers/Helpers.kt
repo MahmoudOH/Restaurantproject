@@ -13,23 +13,14 @@ import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.DatePicker
 import android.widget.EditText
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.location.LocationManagerCompat
-import com.example.resturantproject.views.MainActivity
-import com.example.resturantproject.views.MealsActivity
 import com.google.android.gms.location.LocationServices
-import com.google.firebase.firestore.GeoPoint
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 
 class Helpers {
@@ -46,11 +37,6 @@ class Helpers {
                     it
                 )
             }
-        }
-
-        fun getUserActivity(isAdmin: Boolean): Class<out AppCompatActivity> {
-            // TODO: change activities
-            return if (isAdmin) MainActivity::class.java else MealsActivity::class.java
         }
 
         fun getPath(contentResolver: ContentResolver, uri: Uri?): String? {
@@ -126,14 +112,15 @@ class Helpers {
             val locationProvider =
                 LocationServices.getFusedLocationProviderClient(activity.applicationContext)
             locationProvider.lastLocation.addOnSuccessListener {
-                    onSuccess.invoke(it)
-                }.addOnFailureListener {
-                    onFailure.invoke(it)
-                }
+                onSuccess.invoke(it)
+            }.addOnFailureListener {
+                onFailure.invoke(it)
+            }
         }
 
         fun isLocationEnabled(context: Context): Boolean {
-            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val locationManager =
+                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             return LocationManagerCompat.isLocationEnabled(locationManager)
         }
     }

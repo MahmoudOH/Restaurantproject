@@ -1,7 +1,9 @@
 package com.example.resturantproject.views
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,13 +18,12 @@ import com.example.resturantproject.helpers.Prefs
 class UserProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUserProfileBinding
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUserProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(applicationContext)
         val prefs = Prefs(this)
 
         val checkPermission =
@@ -47,6 +48,8 @@ class UserProfileActivity : AppCompatActivity() {
                     .add(R.id.fragment_container, userProfileFragment)
                     .addToBackStack(null)
                     .commit()
+            } else {
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
 
         }, { e ->

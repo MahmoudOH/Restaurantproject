@@ -63,7 +63,7 @@ class EditProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val db = FireStoreDatabase()
+        val db = FireStoreDatabase(requireContext().applicationContext)
         val prefs = Prefs(requireContext())
         val storageRef = Firebase.storage.reference
         val imagesRef = storageRef.child("user_images")
